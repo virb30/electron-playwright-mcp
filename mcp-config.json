@@ -1,8 +1,8 @@
 {
   "mcpServers": {
-    "playwright": {
+    "electron-playwright": {
       "command": "npx",
-      "args": ["-y", "@executeautomation/playwright-mcp-server"]
+      "args": ["-y", "@virb30/electron-playwright-mcp"]
     }
   }
 }

@@ -14,7 +14,13 @@
 </div>
 <hr>
 
-# Playwright MCP Server 🎭
+# Electron Playwright MCP Server 🎭
+
+This is a fork of this [Playwright MCP server](https://github.com/executeautomation/mcp-playwright) and adds capabilities to navigate throught electron apps.
+
+### Known limitations
+
+Because of the OS API these MCP server cannot interacts with built in file dialog.
 
 [![Trust Score](https://archestra.ai/mcp-catalog/api/badge/quality/executeautomation/mcp-playwright)](https://archestra.ai/mcp-catalog/executeautomation__mcp-playwright)
 [![smithery badge](https://smithery.ai/badge/@executeautomation/playwright-mcp-server)](https://smithery.ai/server/@executeautomation/playwright-mcp-server)
