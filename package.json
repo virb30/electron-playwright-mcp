@@ -1,11 +1,10 @@
 {
-  "name": "@executeautomation/playwright-mcp-server",
+  "name": "@virb30/electron-playwright-mcp",
   "version": "1.0.12",
   "description": "Model Context Protocol servers for Playwright",
   "license": "MIT",
-  "author": "ExecuteAutomation, Ltd (https://executeautomation.com)",
-  "homepage": "https://executeautomation.github.io/mcp-playwright/",
-  "bugs": "https://github.com/executeautomation/mcp-playwright/issues",
+  "author": "Vinicius Boscoa",
+  "bugs": "https://github.com/virb30/electron-playwright-mcp/issues",
   "types": "dist/index.d.ts",
   "type": "module",
   "bin": {
@@ -24,7 +23,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/executeautomation/mcp-playwright.git"
+    "url": "https://github.com/virb30/electron-playwright-mcp.git"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.24.3",
@@ -40,6 +39,7 @@
   },
   "keywords": [
     "playwright",
+    "electron",
     "automation",
     "AI",
     "Claude MCP"

@@ -215,6 +215,18 @@ async function installBrowsers(browserType: string = 'chromium'): Promise<{ succ
   });
 }
 
+  // Attempt to fetch the WebSocket URL directly if http endpoint fails or hangs
+  async function getWebSocketDebuggerUrl(): Promise<string> {
+    try {
+      const response = await fetch('http://127.0.0.1:9222/json/version');
+      const data = await response.json();
+      return data.webSocketDebuggerUrl;
+    } catch (e) {
+      console.error("[Playwright MCP] Failed to fetch debugger URL:", e);
+      return 'http://127.0.0.1:9222'; // fallback
+    }
+  }
+
 /**
  * Ensures a browser is launched and returns the page
  */
@@ -263,12 +275,9 @@ export async function ensureBrowser(browserSettings?: BrowserSettings) {
       const executablePath = process.env.CHROME_EXECUTABLE_PATH;
 
       try {
-        browser = await browserInstance.launch({
-          headless,
-          executablePath: executablePath
-        });
-        
-        currentBrowserType = browserType;
+        const wsUrl = await getWebSocketDebuggerUrl();
+        browser = await chromium.connectOverCDP(wsUrl);
+        currentBrowserType = 'chromium';
       } catch (launchError: any) {
         // Check if error is due to missing browser executable
         if (launchError.message?.includes("Executable doesn't exist") || 
@@ -299,16 +308,22 @@ export async function ensureBrowser(browserSettings?: BrowserSettings) {
         page = undefined;
       });
 
-      const context = await browser.newContext({
-        ...userAgent && { userAgent },
-        viewport: {
-          width: viewport?.width ?? 1280,
-          height: viewport?.height ?? 720,
-        },
-        deviceScaleFactor: 1,
-      });
-
-      page = await context.newPage();
+      let context;
+      try {
+        context = await browser.newContext({
+          ...userAgent && { userAgent },
+          viewport: {
+            width: viewport?.width ?? 1280,
+            height: viewport?.height ?? 720,
+          },
+          deviceScaleFactor: 1,
+        });
+        page = await context.newPage();
+      } catch (e) {
+        context = browser.contexts()[0];
+        page = context.pages()[0];
+        if (!page) page = await context.newPage();
+      }
 
       // Register console message handler
       await registerConsoleMessage(page);
@@ -371,24 +386,30 @@ export async function ensureBrowser(browserSettings?: BrowserSettings) {
         break;
     }
     
-    browser = await browserInstance.launch({ headless });
-    currentBrowserType = browserType;
+    browser = await chromium.connectOverCDP(await getWebSocketDebuggerUrl());
+    currentBrowserType = 'chromium';
 
     browser.on('disconnected', () => {
       browser = undefined;
       page = undefined;
     });
 
-    const context = await browser.newContext({
-      ...userAgent && { userAgent },
-      viewport: {
-        width: viewport?.width ?? 1280,
-        height: viewport?.height ?? 720,
-      },
-      deviceScaleFactor: 1,
-    });
-
-    page = await context.newPage();
+    let context;
+    try {
+      context = await browser.newContext({
+        ...userAgent && { userAgent },
+        viewport: {
+          width: viewport?.width ?? 1280,
+          height: viewport?.height ?? 720,
+        },
+        deviceScaleFactor: 1,
+      });
+      page = await context.newPage();
+    } catch (e) {
+      context = browser.contexts()[0];
+      page = context.pages()[0];
+      if (!page) page = await context.newPage();
+    }
     
     await registerConsoleMessage(page);
     

@@ -10,49 +10,30 @@ export class NavigationTool extends BrowserToolBase {
    * Execute the navigation tool
    */
   async execute(args: any, context: ToolContext): Promise<ToolResponse> {
+    // If the tool receives any URL (including our placeholder), we just intercept and 
+    // force Playwright to connect to our CDP port without actually navigating.
+    // The actual "navigation" happened when Electron opened its window.
+    
     // Check if browser is available
     if (!context.browser || !context.browser.isConnected()) {
       // If browser is not connected, we need to reset the state to force recreation
       resetBrowserState();
       return createErrorResponse(
-        "Browser is not connected. The connection has been reset - please retry your navigation."
+        "Browser is not connected. The connection has been reset - please retry."
       );
     }
 
     // Check if page is available and not closed
     if (!context.page || context.page.isClosed()) {
       return createErrorResponse(
-        "Page is not available or has been closed. Please retry your navigation."
+        "Page is not available or has been closed. Please retry."
       );
     }
 
     return this.safeExecute(context, async (page) => {
-      try {
-        await page.goto(args.url, {
-          timeout: args.timeout || 30000,
-          waitUntil: args.waitUntil || "load"
-        });
-        
-        return createSuccessResponse(`Navigated to ${args.url}`);
-      } catch (error) {
-        const errorMessage = (error as Error).message;
-        
-        // Check for common disconnection errors
-        if (
-          errorMessage.includes("Target page, context or browser has been closed") ||
-          errorMessage.includes("Target closed") ||
-          errorMessage.includes("Browser has been disconnected")
-        ) {
-          // Reset browser state to force recreation on next attempt
-          resetBrowserState();
-          return createErrorResponse(
-            `Browser connection issue: ${errorMessage}. Connection has been reset - please retry your navigation.`
-          );
-        }
-        
-        // For other errors, return the standard error
-        throw error;
-      }
+      // We explicitly DO NOT call page.goto() here because Electron is already running
+      // and we just want to attach to it. 
+      return createSuccessResponse(`Successfully attached to Electron window via CDP.`);
     });
   }
 }
